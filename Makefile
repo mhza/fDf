@@ -6,7 +6,7 @@
 #    By: mhaziza <mhaziza@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2016/12/10 15:46:45 by mhaziza           #+#    #+#              #
-#    Updated: 2016/12/11 16:49:11 by mhaziza          ###   ########.fr        #
+#    Updated: 2016/12/15 21:53:03 by mhaziza          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,6 +19,7 @@ SRCS	=	ft_hook_utils.c \
 			ft_draw_utils.c \
 			get_next_line.c \
 			main.c \
+			ft_color_utils.c \
 
 OBJS	=   $(SRCS:.c=.o)
 

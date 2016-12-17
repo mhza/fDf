@@ -6,60 +6,94 @@
 /*   By: mhaziza <mhaziza@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/12/11 16:41:27 by mhaziza           #+#    #+#             */
-/*   Updated: 2016/12/11 16:48:10 by mhaziza          ###   ########.fr       */
+/*   Updated: 2016/12/16 13:42:11 by mhaziza          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "fdf.h"
 
-static void	ft_putline(t_env *e, t_point *p1, t_point *p2)
+static void		ft_printline_x(t_line *line, t_env *e)
 {
-	int		x;
-	int		y;
-	double	a;
-	double	b;
+	int	i;
+	int	cumul;
 
-	a = (double)(p2->y - p1->y) / (p2->x - p1->x);
-	b = p1->y - a * p1->x;
-	x = p1->x;
-	while (x <= p2->x)
+	cumul = ABS(line->dx) / 2;
+	i = 1;
+	e->is_decr = line->dx > 0 ? 1 : -1;
+	while (i <= ABS(line->dx))
 	{
-		y = (int)(a * x + b);
-		ft_draw(e->mlx, e->win, x, y);
-		x++;
-	}
-}
-
-static void	ft_join_points(t_env *e, t_point *p1, t_point *p2)
-{
-	int		t;
-
-	if (p2->x > p1->x)
-		ft_putline(e, p1, p2);
-	else if (p2->x < p1->x)
-		ft_putline(e, p2, p1);
-	else
-	{
-		t = 0;
-		while (t <= p2->y - p1->y)
+		line->x = line->dx > 0 ? line->x + 1 : line->x - 1;
+		cumul += ABS(line->dy);
+		if (cumul >= ABS(line->dx))
 		{
-			ft_draw(e->mlx, e->win, p1->x, p1->y + t);
-			t++;
+			cumul -= ABS(line->dx);
+			line->y = line->dy > 0 ? line->y + 1 : line->y - 1;
 		}
+		mlx_pixel_put(e->mlx, e->win, e->tr + line->x, e->td + line->y,
+			ft_get_color(line->cp1, line->cp2, e->is_decr * i, line->dx));
+		i++;
 	}
 }
 
-void		ft_putmap(t_env *e, t_point *points, int i, int j)
+static void		ft_printline_y(t_line *line, t_env *e)
 {
-	int		k;
+	int	i;
+	int	cumul;
+
+	cumul = ABS(line->dy) / 2;
+	i = 1;
+	e->is_decr = line->dy > 0 ? 1 : -1;
+	while (i <= ABS(line->dy))
+	{
+		line->y = line->dy > 0 ? line->y + 1 : line->y - 1;
+		cumul += ABS(line->dx);
+		if (cumul >= ABS(line->dy))
+		{
+			cumul -= ABS(line->dy);
+			line->x = line->dx > 0 ? line->x + 1 : line->x - 1;
+		}
+		mlx_pixel_put(e->mlx, e->win, e->tr + line->x, e->td + line->y,
+			ft_get_color(line->cp1, line->cp2, e->is_decr * i, line->dy));
+		i++;
+	}
+}
+
+static void		ft_join_points(t_env *e, t_point *p1, t_point *p2)
+{
+	t_line	line;
+
+	e->is_decr = 0;
+	line.x = p1->x;
+	line.y = p1->y;
+	line.dx = p2->x - p1->x;
+	line.dy = p2->y - p1->y;
+	line.cp1 = (float)255 / (float)(e->zmax - e->zmin) *
+	(float)(p1->z - e->zmin);
+	line.cp2 = (float)255 / (float)(e->zmax - e->zmin) *
+	(float)(p2->z - e->zmin);
+	mlx_pixel_put(e->mlx, e->win, e->tr + line.x, e->td + line.y,
+	ft_get_color(line.cp1, 0, 0, 1));
+	if (ABS(line.dx) > ABS(line.dy))
+		ft_printline_x(&line, e);
+	else
+		ft_printline_y(&line, e);
+}
+
+int				ft_putmap(t_env *e)
+{
+	int	k;
 
 	k = 0;
-	while (k < i * j)
+	while (k < e->col * e->ln)
 	{
-		if (k % j != j - 1)
-			ft_join_points(e, points + k, points + k + 1);
-		if (k / j != i - 1)
-			ft_join_points(e, points + k, points + k + j);
+		if (k % e->col != e->col - 1 && (!k || !(k % e->col) ||
+		((e->points + k)->x0 && (e->points + k + 1)->x0)))
+			ft_join_points(e, e->points + k, e->points + k + 1);
+		if (k / e->col != e->ln - 1 && (!k || !(k % e->col) ||
+		((e->points + k)->x0 && (e->points + k + e->col)->x0)))
+			ft_join_points(e, e->points + k, e->points + k + e->col);
 		k++;
 	}
+	ft_display_comments(e);
+	return (0);
 }

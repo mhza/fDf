@@ -6,7 +6,7 @@
 /*   By: mhaziza <mhaziza@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/12/10 15:50:09 by mhaziza           #+#    #+#             */
-/*   Updated: 2016/12/16 16:15:34 by mhaziza          ###   ########.fr       */
+/*   Updated: 2017/01/03 14:57:52 by mhaziza          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,8 +53,6 @@ typedef	struct	s_env
 	float	c2;
 	float	divpi;
 	int		is_iso;
-	int		ln;
-	int		col;
 	float	piv;
 	int		zoom;
 	int		manz;
@@ -67,7 +65,7 @@ typedef	struct	s_env
 	int		xmin;
 	int		ymax;
 	int		ymin;
-	t_point	*points;
+	t_point	**points_tab;
 }				t_env;
 
 void			ft_draw(void *mlx, void *win, int x, int y);
@@ -79,11 +77,12 @@ int				loop_hook(t_env *e);
 unsigned int	ft_strchri(char *stock, char c);
 int				ft_set_stk(char *tmp, char **stk, char **buffer);
 int				get_next_line(const int fd, char **line);
-int				ft_get_points(t_env *e);
 int				ft_calc_points(t_env *e);
 int				ft_putmap(t_env *e);
 int				ft_readmap(t_env *e);
 unsigned int	ft_get_color(int cp1, int cp2, int i, int delta);
 void			ft_display_comments(t_env *e);
+t_point			**ft_realloc_ptstab(t_point **pts, t_point *point);
+t_point			*ft_realloc_pts(t_point *old, t_point point, int nb_pts);
 
 #endif

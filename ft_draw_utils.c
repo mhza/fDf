@@ -6,7 +6,7 @@
 /*   By: mhaziza <mhaziza@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/12/11 16:41:27 by mhaziza           #+#    #+#             */
-/*   Updated: 2016/12/16 13:42:11 by mhaziza          ###   ########.fr       */
+/*   Updated: 2017/01/03 15:12:11 by mhaziza          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,20 +79,41 @@ static void		ft_join_points(t_env *e, t_point *p1, t_point *p2)
 		ft_printline_y(&line, e);
 }
 
+static void		ft_before_draw(t_env *e, t_point **points, int i)
+{
+	int		j;
+	int		k;
+	t_point	nullpt;
+
+	ft_bzero(&nullpt, sizeof(t_point));
+	j = 0;
+	while ((!i && !j) || ft_memcmp(&points[i][j], &nullpt, sizeof(t_point)))
+	{
+		if (ft_memcmp(&points[i][j + 1], &nullpt, sizeof(t_point)))
+			ft_join_points(e, &points[i][j], &points[i][j + 1]);
+		k = 0;
+		while (points[i + 1] &&
+			ft_memcmp(&points[i + 1][k], &nullpt, sizeof(t_point)))
+			k++;
+		if (points[i + 1] && j <= k &&
+			ft_memcmp(&points[i + 1][j], &nullpt, sizeof(t_point)))
+			ft_join_points(e, &points[i][j], &points[i + 1][j]);
+		j++;
+	}
+}
+
 int				ft_putmap(t_env *e)
 {
-	int	k;
+	int		i;
+	t_point	**points;
 
-	k = 0;
-	while (k < e->col * e->ln)
+	i = 0;
+	if ((points = e->points_tab) == NULL)
+		return (-1);
+	while (points[i])
 	{
-		if (k % e->col != e->col - 1 && (!k || !(k % e->col) ||
-		((e->points + k)->x0 && (e->points + k + 1)->x0)))
-			ft_join_points(e, e->points + k, e->points + k + 1);
-		if (k / e->col != e->ln - 1 && (!k || !(k % e->col) ||
-		((e->points + k)->x0 && (e->points + k + e->col)->x0)))
-			ft_join_points(e, e->points + k, e->points + k + e->col);
-		k++;
+		ft_before_draw(e, points, i);
+		i++;
 	}
 	ft_display_comments(e);
 	return (0);

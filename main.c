@@ -6,50 +6,54 @@
 /*   By: mhaziza <mhaziza@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/12/10 15:49:50 by mhaziza           #+#    #+#             */
-/*   Updated: 2016/12/16 15:53:36 by mhaziza          ###   ########.fr       */
+/*   Updated: 2017/01/03 15:05:09 by mhaziza          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "fdf.h"
 
-int		ft_fit_win(t_env *e)
+int		ft_readline(t_env *e, char **axe_y, int i)
 {
-	int is_fit;
+	char	**axe_x;
+	t_point point;
+	int		j;
 
-	is_fit = 1;
-	if (e->xmax - e->xmin > WIN_X || e->ymax - e->ymin > WIN_Y)
-		is_fit = 0;
-	else
+	if ((axe_x = ft_strsplit(axe_y[i], ' ')) == NULL)
+		return (-1);
+	j = 0;
+	while (axe_x[j] != 0)
 	{
-		e->tr = (WIN_X - (float)(e->xmax - e->xmin)) / 2 + ABS(e->xmin);
-		e->td = (WIN_Y - (float)(e->ymax - e->ymin)) / 2 + ABS(e->ymin);
+		point.x0 = j;
+		point.y0 = i;
+		point.x = 0;
+		point.y = 0;
+		point.z = ft_atoi(axe_x[j]);
+		e->points_tab[i] = ft_realloc_pts(e->points_tab[i], point, j);
+		j++;
 	}
-	return (is_fit);
+	ft_strdel(axe_y);
+	if (!(e->points_tab = ft_realloc_ptstab(e->points_tab, e->points_tab[i])))
+		return (-1);
+	return (0);
 }
 
 int		ft_readmap(t_env *e)
 {
 	char	**axe_y;
-	char	**axe_x;
 	int		i;
-	int		j;
 
 	i = 0;
 	if ((axe_y = ft_strsplit(e->map, '\n')) == NULL)
 		return (-1);
+	if (!(e->points_tab = (t_point**)malloc(sizeof(t_point*))))
+		return (-1);
 	while (axe_y[i] != 0)
 	{
-		if ((axe_x = ft_strsplit(axe_y[i], ' ')) == NULL)
-			return (-1);
-		j = 0;
-		while (axe_x[j] != 0)
-			j++;
+		ft_readline(e, axe_y, i);
 		i++;
 	}
-	if (!(e->points = (t_point*)malloc(sizeof(t_point) * i * j + 1)))
-		return (-1);
-	e->ln = i;
-	e->col = j;
+	e->points_tab[i] = NULL;
+	ft_strdel(axe_y);
 	return (0);
 }
 
@@ -80,8 +84,7 @@ int		ft_call_mlx(char *map)
 	t_env	e;
 
 	ft_init_env(&e, map);
-	if (ft_readmap(&e) != -1 && ft_get_points(&e) != -1 &&
-		ft_calc_points(&e) != -1)
+	if (ft_readmap(&e) != -1 && ft_calc_points(&e) != -1)
 	{
 		while (e.zoom > 1 && !ft_fit_win(&e))
 		{
@@ -124,6 +127,7 @@ int		main(int ac, char **av)
 		ft_set_stk(tmp, &map, &buffer) == -1)
 			return (0);
 	}
+	ft_strdel(&buffer);
 	ft_call_mlx(map);
 	return (0);
 }

@@ -6,11 +6,26 @@
 /*   By: mhaziza <mhaziza@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/12/11 16:44:47 by mhaziza           #+#    #+#             */
-/*   Updated: 2016/12/16 15:30:44 by mhaziza          ###   ########.fr       */
+/*   Updated: 2017/01/03 15:18:33 by mhaziza          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "fdf.h"
+
+int		ft_fit_win(t_env *e)
+{
+	int is_fit;
+
+	is_fit = 1;
+	if (e->xmax - e->xmin > WIN_X || e->ymax - e->ymin > WIN_Y)
+		is_fit = 0;
+	else
+	{
+		e->tr = (WIN_X - (float)(e->xmax - e->xmin)) / 2 + ABS(e->xmin);
+		e->td = (WIN_Y - (float)(e->ymax - e->ymin)) / 2 + ABS(e->ymin);
+	}
+	return (is_fit);
+}
 
 void	ft_set_coordinates(t_env *e, t_point *points)
 {
@@ -33,54 +48,40 @@ void	ft_set_coordinates(t_env *e, t_point *points)
 	}
 }
 
+void	ft_set_struct(t_env *e, t_point *point)
+{
+	if (point->z > e->zmax)
+		e->zmax = point->z;
+	if (point->z < e->zmin)
+		e->zmin = point->z;
+	ft_set_coordinates(e, point);
+	if (point->x > e->xmax)
+		e->xmax = point->x;
+	if (point->x < e->xmin)
+		e->xmin = point->x;
+	if (point->y > e->ymax)
+		e->ymax = point->y;
+	if (point->y < e->ymin)
+		e->ymin = point->y;
+}
+
 int		ft_calc_points(t_env *e)
 {
 	int		i;
-	t_point	*points;
-
-	i = 0;
-	if ((points = e->points) == NULL)
-		return (-1);
-	while (i < e->col * e->ln)
-	{
-		if (points[i].z > e->zmax)
-			e->zmax = points[i].z;
-		if (points[i].z < e->zmin)
-			e->zmin = points[i].z;
-		ft_set_coordinates(e, &points[i]);
-		if (points[i].x > e->xmax)
-			e->xmax = points[i].x;
-		if (points[i].x < e->xmin)
-			e->xmin = points[i].x;
-		if (points[i].y > e->ymax)
-			e->ymax = points[i].y;
-		if (points[i].y < e->ymin)
-			e->ymin = points[i].y;
-		i++;
-	}
-	return (0);
-}
-
-int		ft_get_points(t_env *e)
-{
-	char	**axe_y;
-	char	**axe_x;
-	int		i;
 	int		j;
+	t_point	**points;
+	t_point	nullpt;
 
+	ft_bzero(&nullpt, sizeof(t_point));
 	i = 0;
-	if ((axe_y = ft_strsplit(e->map, '\n')) == NULL)
+	if ((points = e->points_tab) == NULL)
 		return (-1);
-	while (axe_y[i] != 0)
+	while (points[i])
 	{
-		if ((axe_x = ft_strsplit(axe_y[i], ' ')) == NULL)
-			return (-1);
 		j = 0;
-		while (axe_x[j] != 0)
+		while ((!i && !j) || ft_memcmp(&points[i][j], &nullpt, sizeof(t_point)))
 		{
-			(e->points + i * e->col + j)->x0 = j;
-			(e->points + i * e->col + j)->y0 = i;
-			(e->points + i * e->col + j)->z = ft_atoi(axe_x[j]);
+			ft_set_struct(e, &points[i][j]);
 			j++;
 		}
 		i++;
